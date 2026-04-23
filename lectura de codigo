@@ -1,0 +1,24 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main() {
+    FILE *fichero;
+    char linea[10000];
+
+    fichero = fopen("dataset.csv", "r");
+ 
+    if (fichero == NULL) {
+        printf("No se pudo abrir el fichero\n");
+        return 1;
+    }
+
+    printf("Contenido del fichero:\n\n");
+
+    while (fgets(linea, sizeof(linea), fichero) != NULL) {
+        printf("%s", linea);
+    }
+
+    fclose(fichero);
+
+    return 0;
+}
