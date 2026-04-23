@@ -4,3 +4,50 @@ MENU COMPLETO
 3. Listado de actividades por centro
 4. Horarios con mayor afluencia por centro
 5. Mis reservas
+
+CODIGO MENU
+#include <stdio.h>
+#include <locale.h>
+
+int main() {
+    
+
+    int opcion;
+
+    printf("MENU\n");
+    printf("1. Actividad mas frecuentada por centro\n");
+    printf("2. Reservar plaza\n");
+    printf("3. Listado de actividades por centro\n");
+    printf("4. Horarios con mayor afluencia por centro\n");
+    printf("5. Mis reservas\n");
+    
+    printf("Seleccione una opcion (1-5): ");
+    
+    scanf("%d", &opcion);
+
+
+    switch(opcion) {
+        case 1:
+            
+            break;
+        case 2:
+           
+            break;
+        case 3:
+           
+            break;
+        case 4:
+            
+            break;
+        case 5:
+            
+            break;
+        default:
+            printf("Opcion no valida.\n");
+            break;
+    }
+
+   
+    
+    return 0;
+}
