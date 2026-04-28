@@ -1,0 +1,76 @@
+#include <stdio.h>
+#include <string.h>
+
+void limpiarBuffer();
+void seleccionarCentro();
+
+int main() {
+    seleccionarCentro();
+    return 0;
+}
+
+void limpiarBuffer() {
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
+}
+
+void seleccionarCentro() {
+    char centroBuscado[50];
+    char actividadBuscada[50];
+
+    FILE *f;
+    char linea[30000];
+
+    int encontrado = 0;
+
+    printf("Introduce el nombre del centro: ");
+    scanf("%49s", centroBuscado);
+    limpiarBuffer();
+
+    printf("Introduce la actividad: ");
+    scanf("%49s", actividadBuscada);
+    limpiarBuffer();
+
+    f = fopen("dataset.csv", "r");
+
+    if (f == NULL) {
+        printf("Error al abrir el fichero\n");
+        return;
+    }
+
+    // Saltar cabecera
+    fgets(linea, 30000, f);
+
+    // Leer línea a línea
+    while (fgets(linea, 30000, f)) {
+
+        char centro[50], actividad[50];
+        int libres;
+
+        // Extraer SOLO los campos que nos interesan
+        sscanf(linea,
+            "%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%*[^,],%49[^,],%*[^,],%49[^,],%*[^,],%*[^,],%d",
+            actividad, centro, &libres);
+
+        // Comparar
+        if (strcmp(centroBuscado, centro) == 0 &&
+            strcmp(actividadBuscada, actividad) == 0) {
+
+            encontrado = 1;
+
+            if (libres > 0) {
+                printf("\nHay plazas disponibles: %d\n", libres);
+            } else {
+                printf("\nNo hay plazas disponibles\n");
+            }
+
+            break; // ya encontramos uno
+        }
+    }
+
+    if (!encontrado) {
+        printf("\nNo se encontro esa combinacion");
+    }
+
+    fclose(f);
+}
