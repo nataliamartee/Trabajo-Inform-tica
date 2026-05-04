@@ -1,0 +1,10 @@
+void mostrarMenu(void) {
+    printf("\n========== MENU ==========\n");
+    printf("1. Actividad mas frecuentada por centro\n");
+    printf("2. Reservar plaza\n");
+    printf("3. Listado de actividades por centro\n");
+    printf("4. Frecuencia diaria de las actividades ofertadas\n"); //imprime horarios por actividad
+    printf("5. Graficas\n");
+    printf("6. Salir\n");
+    printf("Elige una opcion: ");
+}
