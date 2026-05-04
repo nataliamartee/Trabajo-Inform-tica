@@ -1,0 +1,151 @@
+#include <stdio.h>   
+#include <stdlib.h>  // usar malloc, free
+#include <string.h>  // usar strcmp, strcpy
+
+#define N 100             // tamaño máximo de los textos
+#define MAX_DATOS 10000   // número máximo de líneas del fichero
+
+typedef struct { // define una estructura llamada Actividad
+    int anio;
+    int mes; 
+    int dia; 
+    char dia_semana[N];
+    char hora_inicio[N];
+    char hora_fin[N];
+    char actividad_base[N];
+    char modalidad[N];
+    char centro[N];
+    int plazas; 
+    int ocupadas; 
+    int libres;
+    char tipo_actividad[N]; 
+} Actividad;
+
+typedef struct {// estructura para guardar resultado final
+    char centro[N];
+    char actividad[N];
+} Listado;
+
+int leerFichero(Actividad *datos); // declara función que lee fichero
+int existeActividad(Listado *listado, int nListado, char centro[], char actividad[]); // comprueba duplicados
+void listadoActividadesPorCentro(Actividad *datos, int n); // función principal
+
+int main() {
+
+    Actividad *datos; // puntero donde guardaremos los datos del fichero
+    int n;            // número de datos leídos
+
+    datos = (Actividad *) malloc(MAX_DATOS * sizeof(Actividad)); // reserva memoria para datos
+
+    if (datos == NULL) { // comprueba si falla la memoria
+        printf("Error de memoria\n");
+        return 1;
+    }
+
+    n = leerFichero(datos); //funcion que lee el fichero
+
+    if (n == 0) {
+        printf("No se han cargado datos\n");
+        free(datos); // libera memoria
+        return 1;
+    }
+
+    printf("Datos cargados: %d\n", n); // muestra cuantos datos hay
+
+    listadoActividadesPorCentro(datos, n); // función principal
+
+    free(datos); // libera memoria
+
+    return 0; 
+}
+
+int leerFichero(Actividad *datos) {
+
+    FILE *f;// puntero al fichero
+    int n = 0;// contador de datos
+    char cabecera[300]; // para saltar la primera línea
+
+    f = fopen("dataset.csv", "r"); // abre el fichero
+
+    if (f == NULL) { // si no se abre
+        printf("Error al abrir dataset.csv\n");
+        return 0;
+    }
+
+    fgets(cabecera, 300, f); //lee la primera línea y la ignora
+
+    while (n < MAX_DATOS &&   // mientras no llegue al máximo
+           fscanf(f, "%d %d %d %s %s %s %s %s %s %d %d %d %s",
+                  &datos[n].anio,
+                  &datos[n].mes,
+                  &datos[n].dia,
+                  datos[n].dia_semana,
+                  datos[n].hora_inicio,
+                  datos[n].hora_fin,
+                  datos[n].actividad_base,
+                  datos[n].modalidad,
+                  datos[n].centro,
+                  &datos[n].plazas,
+                  &datos[n].ocupadas,
+                  &datos[n].libres,
+                  datos[n].tipo_actividad) == 13) {
+
+        n++;
+    }
+
+    fclose(f); // cierra el fichero
+
+    return n; // devuelve número de datos
+}
+
+int existeActividad(Listado *listado, int nListado, char centro[], char actividad[]) {
+
+    int i;
+
+    for (i = 0; i < nListado; i++) { // recorre lo ya guardado
+
+        if (strcmp(listado[i].centro, centro) == 0 &&  // compara centro
+            strcmp(listado[i].actividad, actividad) == 0) { // compara actividad
+
+            return 1; // ya existe
+        }
+    }
+
+    return 0; // no existe
+}
+
+void listadoActividadesPorCentro(Actividad *datos, int n) {
+
+    Listado *listado; //guardamos resultados
+    int nListado = 0; // número de elementos guardados
+    int i;
+
+    listado = (Listado *) malloc(n * sizeof(Listado)); //reserva memoria
+
+    if (listado == NULL) { //comprueba error en la memoria
+        printf("Error de memoria\n");
+        return;
+    }
+
+    for (i = 0; i < n; i++) { // recorre todos los datos
+
+        if (existeActividad(listado, nListado,
+                            datos[i].centro,
+                            datos[i].actividad_base) == 0) { // si no existe
+
+            strcpy(listado[nListado].centro, datos[i].centro); // guarda centro
+            strcpy(listado[nListado].actividad, datos[i].actividad_base); // guarda actividad
+            nListado++;
+        }
+    }
+
+    printf("\nListado de actividades por centro:\n\n");
+
+    for (i = 0; i < nListado; i++) { // recorre resultados
+        printf("%s -> %s\n",
+               listado[i].centro,
+               listado[i].actividad); // imprime centro y actividad
+    }
+
+    free(listado); // libera memoria
+}
