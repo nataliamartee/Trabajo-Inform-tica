@@ -1,0 +1,204 @@
+#include <stdio.h>
+#include <stdlib.h>//para usar malloc y free
+#include <string.h>//para usar strcmp y strcpy
+
+#define N 100
+#define MAX_DATOS 10000
+
+typedef struct {
+    int anio;
+    int mes;
+    int dia;
+    char dia_semana[N];
+    char hora_inicio[N];
+    char hora_fin[N];
+    char actividad_base[N];
+    char modalidad[N];
+    char centro[N];
+    int plazas;
+    int ocupadas;
+    int libres;
+    char tipo_actividad[N];
+} Actividad;
+
+typedef struct {//Estructura para guardar el listado final
+    char centro[N];
+    char actividad[N];
+} Listado;
+
+void mostrarMenu();
+
+void actividadMasFrecuentadaPorCentro();
+void reservarPlaza();
+void listadoActividadesPorCentro();
+void actividadMayorDisponibilidadPorCentro();
+void frecuenciaDiariaActividades();
+void graficas();
+
+int main() {//Función principal del programa
+    FILE *fichero;//Puntero al fichero
+
+    fichero = fopen("dataset.csv", "r");
+
+    if (fichero == NULL) {//Si no se ha podido abrir el fichero
+        printf("No se pudo abrir el fichero\n");
+        return 1;
+    }
+
+    fclose(fichero);
+
+    int opcion = 0;//Guarda la opción elegida por el usuario
+
+    while (opcion != 6) {
+    mostrarMenu();
+    scanf("%d", &opcion);
+
+    if (opcion == 1) {
+        actividadMasFrecuentadaPorCentro();
+
+    } else if (opcion == 2) {
+        reservarPlaza();
+
+    } else if (opcion == 3) {
+        listadoActividadesPorCentro();
+
+    } else if (opcion == 4) {
+        frecuenciaDiariaActividades();
+
+    } else if (opcion == 5) {
+        graficas();
+
+    } else if (opcion == 6) {
+        printf("Saliendo del programa...\n");
+
+    } else {
+        printf("Opcion no valida.\n");
+    }
+}
+
+    return 0;
+}
+
+void mostrarMenu(void) {//imprime el menú
+    printf("\n========== MENU ==========\n"); 
+    printf("1. Actividad mas frecuentada por centro\n");
+    printf("2. Reservar plaza\n");
+    printf("3. Listado de actividades por centro\n");
+    printf("4. Frecuencia diaria de las actividades ofertadas\n");
+    printf("5. Graficas\n");
+    printf("6. Salir\n");
+    printf("Elige una opcion: ");
+}
+
+int existeActividad(Listado *listado, int nListado, char centro[], char actividad[]) {//Comprueba si ya existe centro + actividad
+    int i; // Contador para recorrer el listado
+
+    for (i = 0; i < nListado; i++) {//Recorre los elementos ya guardados
+        if (strcmp(listado[i].centro, centro) == 0 &&//Comprueba si el centro es igual
+            strcmp(listado[i].actividad, actividad) == 0) {//Comprueba si la actividad es igual
+            return 1;//Devuelve 1 si ya existe
+        }
+    }
+
+    return 0;//Devuelve 0 si no existe
+}
+
+void listadoActividadesPorCentro() {
+    FILE *f;//Puntero al fichero
+    Actividad *datos;//Puntero para guardar todas las actividades
+    Listado *listado;//Puntero para guardar centro + actividad sin repetir
+    int n = 0;//Número de actividades leídas
+    int nListado = 0;//Número de elementos guardados en listado
+    int i;//Contador para bucles
+    char cabecera[300];//Variable para guardar y saltar la cabecera del fichero
+
+    datos = (Actividad *) malloc(MAX_DATOS * sizeof(Actividad));//Reserva memoria
+
+    if (datos == NULL) {//si malloc falla
+        printf("Error de memoria\n");
+        return;
+    }
+
+    f = fopen("dataset.csv", "r");
+
+    if (f == NULL) {
+        printf("Error al abrir dataset.csv\n");
+        free(datos);//libera memoria
+        return;
+    }
+
+    fgets(cabecera, 300, f);//Lee la primera línea del fichero y la ignora
+
+    while (n < MAX_DATOS &&
+           fscanf(f, "%d %d %d %s %s %s %s %s %s %d %d %d %s",
+                  &datos[n].anio,
+                  &datos[n].mes,
+                  &datos[n].dia,
+                  datos[n].dia_semana,
+                  datos[n].hora_inicio,
+                  datos[n].hora_fin,
+                  datos[n].actividad_base,
+                  datos[n].modalidad,
+                  datos[n].centro,
+                  &datos[n].plazas,
+                  &datos[n].ocupadas,
+                  &datos[n].libres,
+                  datos[n].tipo_actividad) == 13) {
+
+        n++;
+    }
+
+    fclose(f);
+
+    listado = (Listado *) malloc(n * sizeof(Listado));//Reserva memoria
+
+    if (listado == NULL) {//Si malloc falla
+        printf("Error de memoria\n");
+        free(datos);//Libera datos
+        return;
+    }
+
+    for (i = 0; i < n; i++) {// Recorre todas las actividades leídas
+        if (existeActividad(listado, nListado,//Comprueba si ya está guardada
+                            datos[i].centro,//Centro de la actividad actual
+                            datos[i].actividad_base) == 0) {//Actividad actual; si no existe
+
+            strcpy(listado[nListado].centro, datos[i].centro);//Copia el centro al listado
+            strcpy(listado[nListado].actividad, datos[i].actividad_base);//Copia la actividad al listado
+            nListado++;//Aumenta el número de elementos del listado
+        }
+    }
+
+    printf("\nListado de actividades por centro:\n\n");
+
+    for (i = 0; i < nListado; i++) { // Recorre el listado final
+        printf("%s -> %s\n", // Imprime centro y actividad
+               listado[i].centro,
+               listado[i].actividad);
+    }
+
+    free(listado);//Libera memoria del listado
+    free(datos);//Libera memoria de los datos
+}
+
+//funciones provisionales falta añadir
+
+void actividadMasFrecuentadaPorCentro() {
+    printf("Has elegido actividad mas frecuentada por centro.\n");
+}
+
+void reservarPlaza() {
+    printf("Has elegido reservar plaza.\n");
+}
+
+void actividadMayorDisponibilidadPorCentro() {
+    printf("Has elegido actividad con mayor disponibilidad por centro.\n");
+}
+
+void frecuenciaDiariaActividades() {
+    printf("Has elegido frecuencia diaria de actividades.\n");
+}
+
+void graficas() { 
+    printf("Has elegido graficas.\n");
+}
