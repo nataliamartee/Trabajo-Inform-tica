@@ -1,0 +1,153 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+
+typedef struct {
+    char centro[1000];
+    char actividad[1000];
+    int hora;
+} Actividad;
+
+int contarLineas() {
+    FILE *f = fopen("datasett.csv", "r");
+    int contador = 0;
+    char linea[300];
+
+    if (f == NULL) {
+        printf("No se pudo abrir el fichero\n");
+        return 0;
+    }
+
+    while (fgets(linea, sizeof(linea), f)) {
+        contador++;
+    }
+
+    fclose(f);
+
+    return contador - 1;
+}
+
+//leectura fichero
+void leerFichero(Actividad *v, int n) {
+    FILE *f = fopen("datasett.csv", "r");
+    int i = 0;
+    char linea[300];
+
+    if (f == NULL) {
+        printf("Error al abrir el fichero\n");
+        return;
+    }
+
+    fgets(linea, sizeof(linea), f);
+
+    while (i < n && fgets(linea, sizeof(linea), f)) {
+
+        sscanf(linea, "%[^;];%[^;];%d",
+               v[i].centro, v[i].actividad, &v[i].hora);
+        i++;
+    }
+
+    fclose(f);
+}
+
+//COMPRUEBA CENTRO
+int existeCentro(Actividad *v, int n, char centro[]) {
+    for (int i = 0; i < n; i++) {
+        if (strcmp(v[i].centro, centro) == 0) return 1;
+    }
+    return 0;
+}
+
+void mostrarActividades(Actividad *v, int n, char centro[]) {
+    printf("\nActividades disponibles:\n");
+    for (int i = 0; i < n; i++) {
+        if (strcmp(v[i].centro, centro) == 0) {
+            printf("- %s (hora %d)\n", v[i].actividad, v[i].hora);
+        }
+    }
+}
+
+//COMPRUEBA ACTIVIDAD
+int existeActividad(Actividad *v, int n, char centro[], char actividad[]) {
+    for (int i = 0; i < n; i++) {
+        if (strcmp(v[i].centro, centro) == 0 &&
+            strcmp(v[i].actividad, actividad) == 0) return 1;
+    }
+    return 0;
+}
+
+//COMPRUEBA HORARIO
+int existeHora(Actividad *v, int n, char centro[], char actividad[], int hora) {
+    for (int i = 0; i < n; i++) {
+        if (strcmp(v[i].centro, centro) == 0 &&
+            strcmp(v[i].actividad, actividad) == 0 &&
+            v[i].hora == hora) return 1;
+    }
+    return 0;
+}
+
+//ALTERATIVA
+void mostrarPorHora(Actividad *v, int n, char centro[], int hora) {
+    printf("A esa hora hay estas actividades:\n");
+    for (int i = 0; i < n; i++) {
+        if (strcmp(v[i].centro, centro) == 0 && v[i].hora == hora) {
+            printf("- %s\n", v[i].actividad);
+        }
+    }
+}
+
+//FUNC PRICIPAL
+int main() {
+    int n;
+    Actividad *v;
+
+    char centro[100];
+    char actividad[100];
+    int hora;
+
+    n = contarLineas();
+
+    if (n <= 0) {
+        printf("No hay datos en el fichero\n");
+        return 1;
+    }
+
+    v = (Actividad *) malloc(n * sizeof(Actividad));
+
+    if (v == NULL) {
+        printf("Error de memoria\n");
+        return 1;
+    }
+
+    leerFichero(v, n);
+
+    do {
+        printf("\nIntroduce un centro: ");
+        scanf(" %[^\n]", centro);
+    } while (!existeCentro(v, n, centro));
+
+    mostrarActividades(v, n, centro);
+
+    do {
+        printf("\nElige una actividad: ");
+        scanf(" %[^\n]", actividad);
+    } while (!existeActividad(v, n, centro, actividad));
+
+    do {
+        printf("\nElige una hora: ");
+        scanf("%d", &hora);
+
+        if (!existeHora(v, n, centro, actividad, hora)) {
+            printf("Esa actividad no esta disponible a esa hora.\n");
+            mostrarPorHora(v, n, centro, hora);
+        }
+
+    } while (!existeHora(v, n, centro, actividad, hora));
+
+    printf("\nReserva realizada correctamente.\n");
+
+    free(v);
+
+    return 0;
+}
