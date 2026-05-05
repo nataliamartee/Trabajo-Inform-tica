@@ -1,0 +1,103 @@
+#include <stdio.h>
+#include <stdlib.h> //para usar malloc
+#include <string.h> //para uso de cadenas
+
+void buscarActividad(FILE *fichero); //prototipo de funcion que va a devolver los horarios y el centro de la actividad
+
+int main() { //lee el fichero
+
+    FILE *fichero;
+
+    fichero = fopen("dataset.csv", "r");
+
+    if (fichero == NULL) {
+        printf("No se pudo abrir el fichero\n");
+        return 1;
+    }
+
+    buscarActividad(fichero); //llama a la funcion
+
+    fclose(fichero);
+
+    return 0;
+}
+
+
+void buscarActividad(FILE *fichero) //funcion que no devuelve nada solo imprime por pantalla
+{
+    char actividadBuscada[100]; //guarda lo q escribe el usuario
+    
+	//variables por columnas del fichero
+	
+    int anio, mes, dia; //variables numericas del fichero
+    
+	//variables de caracteres del fichero
+    char dia_semana[50];
+    char hora_inicio[50];
+    char hora_fin[50];
+
+    char actividad[100];
+    char modalidad[100];
+    char centro[100];
+
+    int plazas, ocupadas, libres;
+
+    char tipo[100]; //tipo de actividad
+
+    char cabecera[1000]; //guarda la primera linea del fichero
+
+    int encontrada = 0; //para saber si la actividad esta en el fichero
+
+
+    fgets(cabecera, 1000, fichero); //lee primera linea del fichero y la descarta
+
+
+    printf("Introduce una actividad (en minusculas y los espacios con barra baja por ej: nado_libre): ");
+    scanf("%s", actividadBuscada);
+
+
+    printf("\nHORARIOS DISPONIBLES\n\n");
+
+
+    while(fscanf(fichero,
+                 "%d %d %d %s %s %s %s %s %s %d %d %d %s",
+                 &anio,
+                 &mes,
+                 &dia,
+                 dia_semana,
+                 hora_inicio,
+                 hora_fin,
+                 actividad,
+                 modalidad,
+                 centro,
+                 &plazas,
+                 &ocupadas,
+                 &libres,
+                 tipo) == 13) //busca en el fichero dentro de los 13 campos que esta leyendo
+    {
+	
+        if(strcmp(actividad, actividadBuscada) == 0) //compara textos para buscar actividad
+        //si al comparar son iguales realiza las siguientes sentencias
+        {
+
+            printf("Centro: %s\n", centro);
+
+            printf("Dia: %s\n", dia_semana);
+
+            printf("Horario: %s - %s\n",
+                   hora_inicio,
+                   hora_fin);
+
+            printf("Plazas libres: %d\n\n",
+                   libres);
+
+            encontrada = 1; //la marca como encontrada
+        }
+    }
+
+
+    if(encontrada == 0) //si no encuentra nada
+    {
+        printf("No se encontro esa actividad.\n");
+    }
+}
