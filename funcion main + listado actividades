@@ -36,16 +36,6 @@ void frecuenciaDiariaActividades();
 void graficas();
 
 int main() {//Función principal del programa
-    FILE *fichero;//Puntero al fichero
-
-    fichero = fopen("dataset.csv", "r");
-
-    if (fichero == NULL) {//Si no se ha podido abrir el fichero
-        printf("No se pudo abrir el fichero\n");
-        return 1;
-    }
-
-    fclose(fichero);
 
     int opcion = 0;//Guarda la opción elegida por el usuario
 
@@ -196,8 +186,91 @@ void actividadMayorDisponibilidadPorCentro() {
 }
 
 void frecuenciaDiariaActividades() {
-    printf("Has elegido frecuencia diaria de actividades.\n");
+    FILE *f;
+
+    Actividad *datos;
+
+    int n = 0;
+
+    char actividadBuscada[100];
+
+    char cabecera[1000];
+
+    int encontrada = 0;
+
+    datos = (Actividad *) malloc(MAX_DATOS * sizeof(Actividad)); //reserva memoria para guardar actividades
+
+    if(datos == NULL) {
+        printf("Error de memoria\n");
+        return;
+    }
+
+    f = fopen("dataset.csv", "r");
+
+    if(f == NULL) {
+        printf("No se pudo abrir el fichero\n");
+        free(datos);
+        return;
+    }
+
+    fgets(cabecera, 1000, f);
+
+    printf("Introduce una actividad (en minusculas y con barra baja): ");
+
+    scanf("%s", actividadBuscada);
+
+    printf("\nHORARIOS DISPONIBLES\n\n");
+
+    while(n < MAX_DATOS &&
+          fscanf(f,
+                 "%d %d %d %s %s %s %s %s %s %d %d %d %s",
+                 &datos[n].anio,
+                 &datos[n].mes,
+                 &datos[n].dia,
+                 datos[n].dia_semana,
+                 datos[n].hora_inicio,
+                 datos[n].hora_fin,
+                 datos[n].actividad_base,
+                 datos[n].modalidad,
+                 datos[n].centro,
+                 &datos[n].plazas,
+                 &datos[n].ocupadas,
+                 &datos[n].libres,
+                 datos[n].tipo_actividad) == 13)
+    {
+
+        if(strcmp(datos[n].actividad_base, actividadBuscada) == 0)
+        {
+
+            printf("Centro: %s\n",
+                   datos[n].centro);
+
+            printf("Dia: %s\n",
+                   datos[n].dia_semana);
+
+            printf("Horario: %s - %s\n",
+                   datos[n].hora_inicio,
+                   datos[n].hora_fin);
+
+            printf("Plazas libres: %d\n\n",
+                   datos[n].libres);
+
+            encontrada = 1;
+        }
+
+        n++;
+    }
+
+    if(encontrada == 0)
+    {
+        printf("No se encontro esa actividad.\n");
+    }
+
+    fclose(f);
+
+    free(datos);
 }
+
 
 void graficas() { 
     printf("Has elegido graficas.\n");
