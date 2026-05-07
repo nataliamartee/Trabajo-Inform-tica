@@ -83,7 +83,7 @@ int main() {
 }
 
 void mostrarMenu(void) {
-    printf("\n========== MENU ==========\n");
+    printf("\n\t\t\t\t* MENU *\t\t\t\t\n");
     printf("1. Actividad mas frecuentada por centro\n");
     printf("2. Reservar plaza\n");
     printf("3. Listado de actividades por centro\n");
