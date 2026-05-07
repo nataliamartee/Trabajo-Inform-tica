@@ -26,12 +26,17 @@ typedef struct {
     char actividad[N];
 } Listado;
 
+typedef struct {         
+    char nombreActividad[N];
+    int contador;
+} Auxiliar;
+
 void mostrarMenu();
 
 void actividadMasFrecuentadaPorCentro();
 void reservarPlaza(FILE *fichero);
 void listadoActividadesPorCentro();
-void actividadMayorDisponibilidadPorCentro();
+void actividadMasFrecuentadaPorCentro(FILE *fichero);
 void frecuenciaDiariaActividades();
 void graficas();
 
@@ -51,6 +56,12 @@ int main() {
 
         if (opcion == 1) {
             actividadMasFrecuentadaPorCentro();
+            if (fichero == NULL) {
+                printf("No se pudo abrir el fichero\n");
+            } else {
+                actividadMasFrecuentadaPorCentro(fichero);
+                fclose(fichero);
+            }
 
         } else if (opcion == 2) {
             fichero = fopen("dataset.csv", "r");
@@ -82,7 +93,7 @@ int main() {
     return 0;
 }
 
-oid mostrarMenu(void) {
+void mostrarMenu(void) {
     printf("\n\t* MENU *\n");
     printf("\n");
     printf("1. Actividad mas frecuentada por centro\n");
@@ -437,9 +448,64 @@ void frecuenciaDiariaActividades() {
     free(datos);
 }
 
-void actividadMasFrecuentadaPorCentro() {
+void actividadMasFrecuentadaPorCentro(FILE *fichero) {
+    char centroBuscado[N];
+    Actividad a;
+    Auxiliar lista[500]; 
+    char cabecera[1000];
+    int nLista = 0;
+    int i, encontrado;
+    int maxFrecuencia = 0;
+    int indiceGanador = -1;
+
     printf("Has elegido actividad mas frecuentada por centro.\n");
+
+    do {
+        printf("Nombre del centro: ");
+        scanf(" %99[^\n]", centroBuscado);
+        if (existeCentro(fichero, centroBuscado) == 0) {
+            printf("Ese centro no existe. Intentalo de nuevo.\n");
+        }
+    } while (existeCentro(fichero, centroBuscado) == 0);
+
+    rewind(fichero);
+    fgets(cabecera, 1000, fichero);
+
+    while (leerActividad(fichero, &a)) {
+        if (strcmp(a.centro, centroBuscado) == 0) {
+            encontrado = 0;
+            
+            for (i = 0; i < nLista && encontrado == 0; i++) {
+                if (strcmp(lista[i].nombreActividad, a.actividad_base) == 0) {
+                    lista[i].contador++;
+                    encontrado = 1;
+                }
+            }
+            
+            if (encontrado == 0 && nLista < 500) {
+                strcpy(lista[nLista].nombreActividad, a.actividad_base);
+                lista[nLista].contador = 1;
+                nLista++;
+            }
+        }
+    }
+
+    for (i = 0; i < nLista; i++) {
+        if (lista[i].contador > maxFrecuencia) {
+            maxFrecuencia = lista[i].contador;
+            indiceGanador = i;
+        }
+    }
+
+    if (indiceGanador != -1) {
+        printf("\n>> La actividad mas frecuentada en '%s' es: %s\n", 
+               centroBuscado, lista[indiceGanador].nombreActividad);
+        printf(">> Se oferta %d veces en total.\n", lista[indiceGanador].contador);
+    } else {
+        printf("\nNo se encontraron datos para este centro.\n");
+    }
 }
+
 
 void actividadMayorDisponibilidadPorCentro() {
     printf("Has elegido actividad con mayor disponibilidad por centro.\n");
