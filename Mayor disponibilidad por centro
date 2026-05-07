@@ -1,0 +1,153 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define N 100
+#define MAX_DATOS 10000
+
+typedef struct {
+    int anio;
+    int mes;
+    int dia;
+    char dia_semana[N];
+    char hora_inicio[N];
+    char hora_fin[N];
+    char actividad_base[N];
+    char modalidad[N];
+    char centro[N];
+    int plazas;
+    int ocupadas;
+    int libres;
+    char tipo_actividad[N];
+} Actividad;
+
+void mostrarMenu(void);
+void actividadMayorDisponibilidadPorCentro(FILE *fichero);
+int leerActividad(FILE *fichero, Actividad *a);
+int existeCentro(FILE *fichero, char centroBuscado[]);
+
+int main() {
+    FILE *fichero;
+    int opcion = 0;
+
+    fichero = fopen("datasett.csv", "r");
+    if (fichero == NULL) {
+        printf("No se pudo abrir el fichero datasett.csv\n");
+        return 1;
+    }
+    fclose(fichero);
+
+    while (opcion != 6) {
+        mostrarMenu();
+        scanf("%d", &opcion);
+
+        if (opcion == 5) {
+            fichero = fopen("datasett.csv", "r");
+            if (fichero == NULL) {
+                printf("No se pudo abrir el fichero\n");
+            } else {
+                actividadMayorDisponibilidadPorCentro(fichero);
+                fclose(fichero);
+            }
+
+        } else if (opcion == 6) {
+            printf("Saliendo del programa...\n");
+
+        } else if (opcion >= 1 && opcion <= 4) {
+            printf("Esta opcion no esta incluida en esta version reducida.\n");
+
+        } else {
+            printf("Opcion no valida.\n");
+        }
+    }
+
+    return 0;
+}
+
+void mostrarMenu(void) {
+    printf("\n========== MENU ==========\n");
+    printf("1. Actividad mas frecuentada por centro\n");
+    printf("2. Reservar plaza\n");
+    printf("3. Listado de actividades por centro\n");
+    printf("4. Frecuencia diaria de las actividades\n");
+    printf("5. Actividad con mayor disponibilidad\n");
+    printf("6. Salir\n");
+    printf("Elige una opcion: ");
+}
+
+int leerActividad(FILE *fichero, Actividad *a) {
+    return fscanf(fichero, "%d %d %d %s %s %s %s %s %s %d %d %d %s",
+                  &a->anio,
+                  &a->mes,
+                  &a->dia,
+                  a->dia_semana,
+                  a->hora_inicio,
+                  a->hora_fin,
+                  a->actividad_base,
+                  a->modalidad,
+                  a->centro,
+                  &a->plazas,
+                  &a->ocupadas,
+                  &a->libres,
+                  a->tipo_actividad) == 13;
+}
+
+int existeCentro(FILE *fichero, char centroBuscado[]) {
+    Actividad a;
+    char cabecera[1000];
+    int encontrado = 0;
+
+    rewind(fichero);
+    fgets(cabecera, 1000, fichero);
+
+    while (leerActividad(fichero, &a) && encontrado == 0) {
+        if (strcmp(a.centro, centroBuscado) == 0) {
+            encontrado = 1;
+        }
+    }
+
+    return encontrado;
+}
+
+void actividadMayorDisponibilidadPorCentro(FILE *fichero) {
+    char centroBuscado[N];
+    char actMax[N];
+    char horaMax[N];
+    Actividad a;
+    char cabecera[1000];
+    int maxLibres = -1; 
+
+    printf("\n--- ACTIVIDAD CON MAYOR DISPONIBILIDAD ---\n");
+
+    do {
+        printf("Nombre del centro: ");
+        scanf(" %99[^\n]", centroBuscado);
+        
+        if (existeCentro(fichero, centroBuscado) == 0) {
+            printf("Ese centro no existe. Intentalo otra vez.\n");
+        }
+    } while (existeCentro(fichero, centroBuscado) == 0);
+
+    rewind(fichero);
+    fgets(cabecera, 1000, fichero);
+
+    while (leerActividad(fichero, &a)) {
+        if (strcmp(a.centro, centroBuscado) == 0) {
+            
+            if (a.libres > maxLibres) {
+                maxLibres = a.libres;
+                strcpy(actMax, a.actividad_base); 
+                strcpy(horaMax, a.hora_inicio);   
+            }
+        }
+    }
+
+    if (maxLibres > 0) {
+        printf("\n>> RESULTADO: La actividad con mas plazas libres en '%s' es:\n", centroBuscado);
+        printf("  - Actividad: %s\n", actMax);
+        printf("  - Horario: %s\n", horaMax);
+        printf("  - Plazas disponibles: %d\n", maxLibres);
+    } else {
+        printf("\n>> Vaya... Todas las actividades en '%s' estan al 100%% de ocupacion (0 plazas libres).\n", centroBuscado);
+    }
+}
