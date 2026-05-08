@@ -96,7 +96,7 @@ void mostrarmenu(void) {
     printf("2. Frecuencia diaria de las actividades ofertadas\n");
     printf("3. Reservar plaza\n");
     printf("4. Actividad mas frecuentada por centro\n");
-    printf("5. Media de plazas ocupadas por dia\n");
+    printf("5. Media de plazas ocupadas por hora\n");
     printf("6. Graficas\n");
     printf("7. Salir\n");
     
@@ -446,40 +446,52 @@ void frecuenciadiariaactividades() {
     free(datos);
 }
 
-void actividadmasfrecuentadaporcentro(FILE *fichero) {
-    char centrobuscado[N];
+void actividadmasfrecuentadaporcentro() {
+    FILE *fichero = fopen("dataset.csv", "r");
+    if (!fichero) {
+        printf("No se pudo abrir dataset.csv\n");
+        return;
+    }
+
+    char centroBuscado[N];
     Actividad a;
-    Auxiliar lista[500]; 
+    Auxiliar lista[500];
     char cabecera[1000];
     int nLista = 0;
     int i, encontrado;
-    int maxfrecuencia = 0;
-    int indiceganador = -1;
+    int maxFrecuencia = 0;
+    int indiceGanador = -1;
 
     printf("\n--- ANALISIS DE ACTIVIDAD MAS FRECUENTADA ---\n");
 
+    //pide el centro
     do {
         printf("Nombre del centro: ");
-        scanf(" %99[^\n]", centrobuscado);
-        if (existecentro(fichero, centrobuscado) == 0) {
-            printf("Ese centro no existe.\n");
-        }
-    } while (existecentro(fichero, centrobuscado) == 0);
+        scanf(" %99[^\n]", centroBuscado);
 
+        rewind(fichero);
+        fgets(cabecera, 1000, fichero);
+
+        if (existecentro(fichero, centroBuscado) == 0) {
+            printf("Ese centro no existe. Intentalo de nuevo.\n");
+        }
+    } while (existecentro(fichero, centroBuscado) == 0);
+
+    //analiza el fichero
     rewind(fichero);
     fgets(cabecera, 1000, fichero);
 
     while (leeractividad(fichero, &a)) {
-        if (strcmp(a.centro, centrobuscado) == 0) {
+        if (strcmp(a.centro, centroBuscado) == 0) {
             encontrado = 0;
-            
+
             for (i = 0; i < nLista && encontrado == 0; i++) {
                 if (strcmp(lista[i].nombreactividad, a.actividad_base) == 0) {
                     lista[i].contador++;
                     encontrado = 1;
                 }
             }
-            
+
             if (encontrado == 0 && nLista < 500) {
                 strcpy(lista[nLista].nombreactividad, a.actividad_base);
                 lista[nLista].contador = 1;
@@ -488,17 +500,20 @@ void actividadmasfrecuentadaporcentro(FILE *fichero) {
         }
     }
 
+    fclose(fichero);
+
+    //busca la actividad con más frecuencia
     for (i = 0; i < nLista; i++) {
-        if (lista[i].contador > maxfrecuencia) {
-            maxfrecuencia = lista[i].contador;
-            indiceganador = i;
+        if (lista[i].contador > maxFrecuencia) {
+            maxFrecuencia = lista[i].contador;
+            indiceGanador = i;
         }
     }
 
-    if (indiceganador != -1) {
-        printf("\n La actividad mas frecuentada en '%s' es: %s\n", 
-               centrobuscado, lista[indiceganador].nombreactividad);
-        printf("Se oferta %d veces en total.\n", lista[indiceganador].contador);
+    if (indiceGanador != -1) {
+        printf("\n>> La actividad mas frecuentada en '%s' es: %s\n",
+               centroBuscado, lista[indiceGanador].nombreactividad);
+        printf(">> Se oferta %d veces en total.\n", lista[indiceGanador].contador);
     } else {
         printf("\nNo se encontraron datos para este centro.\n");
     }
@@ -517,13 +532,13 @@ void mediaplazasporhora() {
     int suma[24] = {0};
     int cuenta[24] = {0};
 
-    fgets(cabecera, 1000, fichero);  // saltar cabecera
+    fgets(cabecera, 1000, fichero);  //salta la cabecera
 
     while (leeractividad(fichero, &a)) {
 
         int hora = 0;
 
-        // hora_inicio formato "HH:MM"
+        //hora_inicio formato "08:00"
         sscanf(a.hora_inicio, "%2d", &hora);
 
         if (hora >= 8 && hora <= 22) {
