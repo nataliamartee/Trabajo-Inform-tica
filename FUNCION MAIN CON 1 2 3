@@ -1,0 +1,450 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define N 100
+#define MAX_DATOS 10000
+
+typedef struct {
+    int anio;
+    int mes;
+    int dia;
+    char dia_semana[N];
+    char hora_inicio[N];
+    char hora_fin[N];
+    char actividad_base[N];
+    char modalidad[N];
+    char centro[N];
+    int plazas;
+    int ocupadas;
+    int libres;
+    char tipo_actividad[N];
+} Actividad;
+
+typedef struct {
+    char centro[N];
+    char actividad[N];
+} Listado;
+
+void mostrarMenu();
+
+void actividadMasFrecuentadaPorCentro();
+void reservarPlaza(FILE *fichero);
+void listadoActividadesPorCentro();
+void actividadMayorDisponibilidadPorCentro();
+void frecuenciaDiariaActividades();
+void graficas();
+
+int existeActividad(Listado *listado, int nListado, char centro[], char actividad[]);
+int leerActividad(FILE *fichero, Actividad *a);
+int existeCentro(FILE *fichero, char centroBuscado[]);
+int existeActividadEnCentro(FILE *fichero, char centroBuscado[], char actividadBuscada[]);
+int existeHorario(FILE *fichero, char centroBuscado[], char actividadBuscada[], char diaBuscado[], char horarioBuscado[]);
+
+int main() {
+    FILE *fichero;
+    int opcion = 0;
+
+    while (opcion != 6) {
+        mostrarMenu();
+        scanf("%d", &opcion);
+
+        if (opcion == 1) {
+            listadoActividadesPorCentro();
+        } else if (opcion == 2) {
+            frecuenciaDiariaActividades();
+        } else if (opcion == 3) {
+            fichero = fopen("dataset.csv", "r");
+
+            if (fichero == NULL) {
+                printf("No se pudo abrir el fichero\n");
+            } else {
+                reservarPlaza(fichero);
+                fclose(fichero);
+            }
+
+        } else if (opcion == 4) {
+            actividadMasFrecuentadaPorCentro();
+
+
+        } else if (opcion == 5) {
+            graficas();
+
+        } else if (opcion == 6) {
+            printf("Saliendo del programa...\n");
+
+        } else {
+            printf("Opcion no valida.\n");
+        }
+    }
+
+    return 0;
+}
+
+void mostrarMenu(void) {
+    printf("\n\t* MENU *\n");
+    printf("\n");
+    printf("1. Listado de actividades por centro\n");
+    printf("2. Frecuencia diaria de las actividades ofertadas\n");
+    printf("3. Reservar plaza\n");
+    printf("4. Actividad mas frecuentada por centro\n");
+    printf("5. Graficas\n");
+    printf("6. Salir\n");
+    
+    printf("Elige una opcion: ");
+}
+
+int leerActividad(FILE *fichero, Actividad *a) {
+    return fscanf(fichero,
+                  "%d %d %d %s %s %s %s %s %s %d %d %d %s",
+                  &a->anio,
+                  &a->mes,
+                  &a->dia,
+                  a->dia_semana,
+                  a->hora_inicio,
+                  a->hora_fin,
+                  a->actividad_base,
+                  a->modalidad,
+                  a->centro,
+                  &a->plazas,
+                  &a->ocupadas,
+                  &a->libres,
+                  a->tipo_actividad) == 13;
+}
+
+int existeCentro(FILE *fichero, char centroBuscado[]) {
+    Actividad a;
+    char cabecera[1000];
+    int encontrado = 0;
+
+    rewind(fichero);
+    fgets(cabecera, 1000, fichero);
+
+    while (leerActividad(fichero, &a) && encontrado == 0) {
+        if (strcmp(a.centro, centroBuscado) == 0) {
+            encontrado = 1;
+        }
+    }
+
+    return encontrado;
+}
+
+int existeActividadEnCentro(FILE *fichero, char centroBuscado[], char actividadBuscada[]) {
+    Actividad a;
+    char cabecera[1000];
+    int encontrado = 0;
+
+    rewind(fichero);
+    fgets(cabecera, 1000, fichero);
+
+    while (leerActividad(fichero, &a) && encontrado == 0) {
+        if (strcmp(a.centro, centroBuscado) == 0 &&
+            strcmp(a.actividad_base, actividadBuscada) == 0) {
+            encontrado = 1;
+        }
+    }
+
+    return encontrado;
+}
+
+int existeHorario(FILE *fichero,
+                  char centroBuscado[],
+                  char actividadBuscada[],
+                  char diaBuscado[],
+                  char horarioBuscado[]) {
+    Actividad a;
+    char cabecera[1000];
+    int encontrado = 0;
+
+    rewind(fichero);
+    fgets(cabecera, 1000, fichero);
+
+    while (leerActividad(fichero, &a) && encontrado == 0) {
+        if (strcmp(a.centro, centroBuscado) == 0 &&
+            strcmp(a.actividad_base, actividadBuscada) == 0 &&
+            strcmp(a.dia_semana, diaBuscado) == 0 &&
+            strcmp(a.hora_inicio, horarioBuscado) == 0) {
+            encontrado = 1;
+        }
+    }
+
+    return encontrado;
+}
+
+void reservarPlaza(FILE *fichero) {
+    char centroBuscado[N];
+    char actividadBuscada[N];
+    char diaBuscado[N];
+    char horarioBuscado[N];
+
+    Actividad a;
+    char cabecera[1000];
+
+    int reservaHecha = 0;
+
+    do {
+        printf("Nombre del centro: ");
+        scanf("%s", centroBuscado);
+
+        if (existeCentro(fichero, centroBuscado) == 0) {
+            printf("Ese centro no existe. Intentalo otra vez.\n");
+        }
+
+    } while (existeCentro(fichero, centroBuscado) == 0);
+
+    do {
+        printf("Actividad que quieres realizar: ");
+        scanf("%s", actividadBuscada);
+
+        if (existeActividadEnCentro(fichero, centroBuscado, actividadBuscada) == 0) {
+            printf("Esa actividad no existe en ese centro.\n");
+        }
+
+    } while (existeActividadEnCentro(fichero, centroBuscado, actividadBuscada) == 0);
+
+    do {
+        printf("Dia de la semana: ");
+        scanf("%s", diaBuscado);
+
+        rewind(fichero);
+        fgets(cabecera, 1000, fichero);
+
+        reservaHecha = 0;
+
+        while (leerActividad(fichero, &a) && reservaHecha == 0) {
+            if (strcmp(a.centro, centroBuscado) == 0 &&
+                strcmp(a.actividad_base, actividadBuscada) == 0 &&
+                strcmp(a.dia_semana, diaBuscado) == 0) {
+                reservaHecha = 1;
+            }
+        }
+
+        if (reservaHecha == 0) {
+            printf("Ese dia no existe para esa actividad.\n");
+        }
+
+    } while (reservaHecha == 0);
+
+    do {
+        printf("Horario de inicio: ");
+        scanf("%s", horarioBuscado);
+
+        if (existeHorario(fichero,
+                          centroBuscado,
+                          actividadBuscada,
+                          diaBuscado,
+                          horarioBuscado) == 0) {
+            printf("Ese horario no existe.\n");
+        }
+
+    } while (existeHorario(fichero,
+                           centroBuscado,
+                           actividadBuscada,
+                           diaBuscado,
+                           horarioBuscado) == 0);
+
+    rewind(fichero);
+    fgets(cabecera, 1000, fichero);
+
+    reservaHecha = 0;
+
+    while (leerActividad(fichero, &a) && reservaHecha == 0) {
+        if (strcmp(a.centro, centroBuscado) == 0 &&
+            strcmp(a.actividad_base, actividadBuscada) == 0 &&
+            strcmp(a.dia_semana, diaBuscado) == 0 &&
+            strcmp(a.hora_inicio, horarioBuscado) == 0) {
+
+            if (a.libres > 0) {
+                printf("\nPlaza reservada correctamente.\n");
+                printf("Centro: %s\n", a.centro);
+                printf("Actividad: %s\n", a.actividad_base);
+                printf("Dia: %s\n", a.dia_semana);
+                printf("Horario: %s\n", a.hora_inicio);
+                printf("Plazas libres: %d\n", a.libres);
+            } else {
+                printf("\nNo hay plazas disponibles.\n");
+            }
+
+            reservaHecha = 1;
+        }
+    }
+}
+
+int existeActividad(Listado *listado, int nListado, char centro[], char actividad[]) {
+    int i;
+
+    for (i = 0; i < nListado; i++) {
+        if (strcmp(listado[i].centro, centro) == 0 &&
+            strcmp(listado[i].actividad, actividad) == 0) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+void listadoActividadesPorCentro() {
+    FILE *f;
+    Actividad *datos;
+    Listado *listado;
+    int n = 0;
+    int nListado = 0;
+    int i;
+    char cabecera[300];
+
+    datos = (Actividad *) malloc(MAX_DATOS * sizeof(Actividad));
+
+    if (datos == NULL) {
+        printf("Error de memoria\n");
+        return;
+    }
+
+    f = fopen("dataset.csv", "r");
+
+    if (f == NULL) {
+        printf("Error al abrir dataset.csv\n");
+        free(datos);
+        return;
+    }
+
+    fgets(cabecera, 300, f);
+
+    while (n < MAX_DATOS &&
+           fscanf(f, "%d %d %d %s %s %s %s %s %s %d %d %d %s",
+                  &datos[n].anio,
+                  &datos[n].mes,
+                  &datos[n].dia,
+                  datos[n].dia_semana,
+                  datos[n].hora_inicio,
+                  datos[n].hora_fin,
+                  datos[n].actividad_base,
+                  datos[n].modalidad,
+                  datos[n].centro,
+                  &datos[n].plazas,
+                  &datos[n].ocupadas,
+                  &datos[n].libres,
+                  datos[n].tipo_actividad) == 13) {
+        n++;
+    }
+
+    fclose(f);
+
+    listado = (Listado *) malloc(n * sizeof(Listado));
+
+    if (listado == NULL) {
+        printf("Error de memoria\n");
+        free(datos);
+        return;
+    }
+
+    for (i = 0; i < n; i++) {
+        if (existeActividad(listado,
+                            nListado,
+                            datos[i].centro,
+                            datos[i].actividad_base) == 0) {
+
+            strcpy(listado[nListado].centro, datos[i].centro);
+            strcpy(listado[nListado].actividad, datos[i].actividad_base);
+            nListado++;
+        }
+    }
+
+    printf("\nListado de actividades por centro:\n\n");
+
+    for (i = 0; i < nListado; i++) {
+        printf("%s -> %s\n",
+               listado[i].centro,
+               listado[i].actividad);
+    }
+
+    free(listado);
+    free(datos);
+}
+
+void frecuenciaDiariaActividades() {
+    FILE *f;
+
+    Actividad *datos;
+
+    int n = 0;
+
+    char actividadBuscada[100];
+
+    char cabecera[1000];
+
+    int encontrada = 0;
+
+    datos = (Actividad *) malloc(MAX_DATOS * sizeof(Actividad));
+
+    if (datos == NULL) {
+        printf("Error de memoria\n");
+        return;
+    }
+
+    f = fopen("dataset.csv", "r");
+
+    if (f == NULL) {
+        printf("No se pudo abrir el fichero\n");
+        free(datos);
+        return;
+    }
+
+    fgets(cabecera, 1000, f);
+
+    printf("Introduce una actividad (en minusculas y con barra baja): ");
+
+    scanf("%s", actividadBuscada);
+
+    printf("\nHORARIOS DISPONIBLES\n\n");
+
+    while (n < MAX_DATOS &&
+           fscanf(f,
+                  "%d %d %d %s %s %s %s %s %s %d %d %d %s",
+                  &datos[n].anio,
+                  &datos[n].mes,
+                  &datos[n].dia,
+                  datos[n].dia_semana,
+                  datos[n].hora_inicio,
+                  datos[n].hora_fin,
+                  datos[n].actividad_base,
+                  datos[n].modalidad,
+                  datos[n].centro,
+                  &datos[n].plazas,
+                  &datos[n].ocupadas,
+                  &datos[n].libres,
+                  datos[n].tipo_actividad) == 13) {
+
+        if (strcmp(datos[n].actividad_base, actividadBuscada) == 0) {
+
+            printf("Centro: %s\n", datos[n].centro);
+            printf("Dia: %s\n", datos[n].dia_semana);
+            printf("Horario: %s - %s\n",
+                   datos[n].hora_inicio,
+                   datos[n].hora_fin);
+            printf("Plazas libres: %d\n\n", datos[n].libres);
+
+            encontrada = 1;
+        }
+
+        n++;
+    }
+
+    if (encontrada == 0) {
+        printf("No se encontro esa actividad.\n");
+    }
+
+    fclose(f);
+    free(datos);
+}
+
+void actividadMasFrecuentadaPorCentro() {
+    printf("Has elegido actividad mas frecuentada por centro.\n");
+}
+
+void actividadMayorDisponibilidadPorCentro() {
+    printf("Has elegido actividad con mayor disponibilidad por centro.\n");
+}
+
+void graficas() {
+    printf("Has elegido graficas.\n");
+}
