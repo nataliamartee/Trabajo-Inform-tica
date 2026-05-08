@@ -26,51 +26,59 @@ typedef struct {
     char actividad[N];
 } Listado;
 
-void mostrarMenu();
+typedef struct {
+    char nombreactividad[N];
+    int contador;
+} Auxiliar;
 
-void actividadMasFrecuentadaPorCentro();
-void reservarPlaza(FILE *fichero);
-void listadoActividadesPorCentro();
-void actividadMayorDisponibilidadPorCentro();
-void frecuenciaDiariaActividades();
+
+void mostrarmenu();
+
+void actividadmasfrecuentadaporcentro();
+void reservarplaza(FILE *fichero);
+void listadoactividadesporcentro();
+void frecuenciadiariaactividades();
+void mediaplazasporhora();
 void graficas();
 
-int existeActividad(Listado *listado, int nListado, char centro[], char actividad[]);
-int leerActividad(FILE *fichero, Actividad *a);
-int existeCentro(FILE *fichero, char centroBuscado[]);
-int existeActividadEnCentro(FILE *fichero, char centroBuscado[], char actividadBuscada[]);
-int existeHorario(FILE *fichero, char centroBuscado[], char actividadBuscada[], char diaBuscado[], char horarioBuscado[]);
+int existeactividad(Listado *listado, int nListado, char centro[], char actividad[]);
+int leeractividad(FILE *fichero, Actividad *a);
+int existecentro(FILE *fichero, char centrobuscado[]);
+int existeactividadencentro(FILE *fichero, char centrobuscado[], char actividadbuscada[]);
+int existehorario(FILE *fichero, char centrobuscado[], char actividadbuscada[], char diabuscado[], char horariobuscado[]);
 
 int main() {
     FILE *fichero;
     int opcion = 0;
 
-    while (opcion != 6) {
-        mostrarMenu();
+    while (opcion != 7) {
+        mostrarmenu();
         scanf("%d", &opcion);
 
         if (opcion == 1) {
-            listadoActividadesPorCentro();
+            listadoactividadesporcentro();
         } else if (opcion == 2) {
-            frecuenciaDiariaActividades();
+            frecuenciadiariaactividades();
         } else if (opcion == 3) {
             fichero = fopen("dataset.csv", "r");
 
             if (fichero == NULL) {
                 printf("No se pudo abrir el fichero\n");
             } else {
-                reservarPlaza(fichero);
+                reservarplaza(fichero);
                 fclose(fichero);
             }
 
         } else if (opcion == 4) {
-            actividadMasFrecuentadaPorCentro();
-
-
+            actividadmasfrecuentadaporcentro();
+        
         } else if (opcion == 5) {
-            graficas();
+            mediaplazasporhora();
 
         } else if (opcion == 6) {
+            graficas();
+
+        } else if (opcion == 7) {
             printf("Saliendo del programa...\n");
 
         } else {
@@ -81,20 +89,21 @@ int main() {
     return 0;
 }
 
-void mostrarMenu(void) {
+void mostrarmenu(void) {
     printf("\n\t* MENU *\n");
     printf("\n");
     printf("1. Listado de actividades por centro\n");
     printf("2. Frecuencia diaria de las actividades ofertadas\n");
     printf("3. Reservar plaza\n");
     printf("4. Actividad mas frecuentada por centro\n");
-    printf("5. Graficas\n");
-    printf("6. Salir\n");
+    printf("5. Media de plazas ocupadas por dia\n");
+    printf("6. Graficas\n");
+    printf("7. Salir\n");
     
     printf("Elige una opcion: ");
 }
 
-int leerActividad(FILE *fichero, Actividad *a) {
+int leeractividad(FILE *fichero, Actividad *a) {
     return fscanf(fichero,
                   "%d %d %d %s %s %s %s %s %s %d %d %d %s",
                   &a->anio,
@@ -112,7 +121,7 @@ int leerActividad(FILE *fichero, Actividad *a) {
                   a->tipo_actividad) == 13;
 }
 
-int existeCentro(FILE *fichero, char centroBuscado[]) {
+int existecentro(FILE *fichero, char centrobuscado[]) {
     Actividad a;
     char cabecera[1000];
     int encontrado = 0;
@@ -120,8 +129,8 @@ int existeCentro(FILE *fichero, char centroBuscado[]) {
     rewind(fichero);
     fgets(cabecera, 1000, fichero);
 
-    while (leerActividad(fichero, &a) && encontrado == 0) {
-        if (strcmp(a.centro, centroBuscado) == 0) {
+    while (leeractividad(fichero, &a) && encontrado == 0) {
+        if (strcmp(a.centro, centrobuscado) == 0) {
             encontrado = 1;
         }
     }
@@ -129,7 +138,7 @@ int existeCentro(FILE *fichero, char centroBuscado[]) {
     return encontrado;
 }
 
-int existeActividadEnCentro(FILE *fichero, char centroBuscado[], char actividadBuscada[]) {
+int existeactividadencentro(FILE *fichero, char centrobuscado[], char actividadbuscada[]) {
     Actividad a;
     char cabecera[1000];
     int encontrado = 0;
@@ -137,9 +146,9 @@ int existeActividadEnCentro(FILE *fichero, char centroBuscado[], char actividadB
     rewind(fichero);
     fgets(cabecera, 1000, fichero);
 
-    while (leerActividad(fichero, &a) && encontrado == 0) {
-        if (strcmp(a.centro, centroBuscado) == 0 &&
-            strcmp(a.actividad_base, actividadBuscada) == 0) {
+    while (leeractividad(fichero, &a) && encontrado == 0) {
+        if (strcmp(a.centro, centrobuscado) == 0 &&
+            strcmp(a.actividad_base, actividadbuscada) == 0) {
             encontrado = 1;
         }
     }
@@ -147,11 +156,11 @@ int existeActividadEnCentro(FILE *fichero, char centroBuscado[], char actividadB
     return encontrado;
 }
 
-int existeHorario(FILE *fichero,
-                  char centroBuscado[],
-                  char actividadBuscada[],
-                  char diaBuscado[],
-                  char horarioBuscado[]) {
+int existehorario(FILE *fichero,
+                  char centrobuscado[],
+                  char actividadbuscada[],
+                  char diabuscado[],
+                  char horariobuscado[]) {
     Actividad a;
     char cabecera[1000];
     int encontrado = 0;
@@ -159,11 +168,11 @@ int existeHorario(FILE *fichero,
     rewind(fichero);
     fgets(cabecera, 1000, fichero);
 
-    while (leerActividad(fichero, &a) && encontrado == 0) {
-        if (strcmp(a.centro, centroBuscado) == 0 &&
-            strcmp(a.actividad_base, actividadBuscada) == 0 &&
-            strcmp(a.dia_semana, diaBuscado) == 0 &&
-            strcmp(a.hora_inicio, horarioBuscado) == 0) {
+    while (leeractividad(fichero, &a) && encontrado == 0) {
+        if (strcmp(a.centro, centrobuscado) == 0 &&
+            strcmp(a.actividad_base, actividadbuscada) == 0 &&
+            strcmp(a.dia_semana, diabuscado) == 0 &&
+            strcmp(a.hora_inicio, horariobuscado) == 0) {
             encontrado = 1;
         }
     }
@@ -171,88 +180,88 @@ int existeHorario(FILE *fichero,
     return encontrado;
 }
 
-void reservarPlaza(FILE *fichero) {
-    char centroBuscado[N];
-    char actividadBuscada[N];
-    char diaBuscado[N];
-    char horarioBuscado[N];
+void reservarplaza(FILE *fichero) {
+    char centrobuscado[N];
+    char actividadbuscada[N];
+    char diabuscado[N];
+    char horariobuscado[N];
 
     Actividad a;
     char cabecera[1000];
 
-    int reservaHecha = 0;
+    int reserva = 0;
 
     do {
         printf("Nombre del centro: ");
-        scanf("%s", centroBuscado);
+        scanf("%s", centrobuscado);
 
-        if (existeCentro(fichero, centroBuscado) == 0) {
+        if (existecentro(fichero, centrobuscado) == 0) {
             printf("Ese centro no existe. Intentalo otra vez.\n");
         }
 
-    } while (existeCentro(fichero, centroBuscado) == 0);
+    } while (existecentro(fichero, centrobuscado) == 0);
 
     do {
         printf("Actividad que quieres realizar: ");
-        scanf("%s", actividadBuscada);
+        scanf("%s", actividadbuscada);
 
-        if (existeActividadEnCentro(fichero, centroBuscado, actividadBuscada) == 0) {
+        if (existeactividadencentro(fichero, centrobuscado, actividadbuscada) == 0) {
             printf("Esa actividad no existe en ese centro.\n");
         }
 
-    } while (existeActividadEnCentro(fichero, centroBuscado, actividadBuscada) == 0);
+    } while (existeactividadencentro(fichero, centrobuscado, actividadbuscada) == 0);
 
     do {
         printf("Dia de la semana: ");
-        scanf("%s", diaBuscado);
+        scanf("%s", diabuscado);
 
         rewind(fichero);
         fgets(cabecera, 1000, fichero);
 
-        reservaHecha = 0;
+        reserva = 0;
 
-        while (leerActividad(fichero, &a) && reservaHecha == 0) {
-            if (strcmp(a.centro, centroBuscado) == 0 &&
-                strcmp(a.actividad_base, actividadBuscada) == 0 &&
-                strcmp(a.dia_semana, diaBuscado) == 0) {
-                reservaHecha = 1;
+        while (leeractividad(fichero, &a) && reserva == 0) {
+            if (strcmp(a.centro, centrobuscado) == 0 &&
+                strcmp(a.actividad_base, actividadbuscada) == 0 &&
+                strcmp(a.dia_semana, diabuscado) == 0) {
+                reserva = 1;
             }
         }
 
-        if (reservaHecha == 0) {
+        if (reserva == 0) {
             printf("Ese dia no existe para esa actividad.\n");
         }
 
-    } while (reservaHecha == 0);
+    } while (reserva == 0);
 
     do {
         printf("Horario de inicio: ");
-        scanf("%s", horarioBuscado);
+        scanf("%s", horariobuscado);
 
-        if (existeHorario(fichero,
-                          centroBuscado,
-                          actividadBuscada,
-                          diaBuscado,
-                          horarioBuscado) == 0) {
+        if (existehorario(fichero,
+                          centrobuscado,
+                          actividadbuscada,
+                          diabuscado,
+                          horariobuscado) == 0) {
             printf("Ese horario no existe.\n");
         }
 
-    } while (existeHorario(fichero,
-                           centroBuscado,
-                           actividadBuscada,
-                           diaBuscado,
-                           horarioBuscado) == 0);
+    } while (existehorario(fichero,
+                           centrobuscado,
+                           actividadbuscada,
+                           diabuscado,
+                           horariobuscado) == 0);
 
     rewind(fichero);
     fgets(cabecera, 1000, fichero);
 
-    reservaHecha = 0;
+    reserva = 0;
 
-    while (leerActividad(fichero, &a) && reservaHecha == 0) {
-        if (strcmp(a.centro, centroBuscado) == 0 &&
-            strcmp(a.actividad_base, actividadBuscada) == 0 &&
-            strcmp(a.dia_semana, diaBuscado) == 0 &&
-            strcmp(a.hora_inicio, horarioBuscado) == 0) {
+    while (leeractividad(fichero, &a) && reserva == 0) {
+        if (strcmp(a.centro, centrobuscado) == 0 &&
+            strcmp(a.actividad_base, actividadbuscada) == 0 &&
+            strcmp(a.dia_semana, diabuscado) == 0 &&
+            strcmp(a.hora_inicio, horariobuscado) == 0) {
 
             if (a.libres > 0) {
                 printf("\nPlaza reservada correctamente.\n");
@@ -265,12 +274,12 @@ void reservarPlaza(FILE *fichero) {
                 printf("\nNo hay plazas disponibles.\n");
             }
 
-            reservaHecha = 1;
+            reserva = 1;
         }
     }
 }
 
-int existeActividad(Listado *listado, int nListado, char centro[], char actividad[]) {
+int existeactividad(Listado *listado, int nListado, char centro[], char actividad[]) {
     int i;
 
     for (i = 0; i < nListado; i++) {
@@ -283,7 +292,7 @@ int existeActividad(Listado *listado, int nListado, char centro[], char activida
     return 0;
 }
 
-void listadoActividadesPorCentro() {
+void listadoactividadesporcentro() {
     FILE *f;
     Actividad *datos;
     Listado *listado;
@@ -338,7 +347,7 @@ void listadoActividadesPorCentro() {
     }
 
     for (i = 0; i < n; i++) {
-        if (existeActividad(listado,
+        if (existeactividad(listado,
                             nListado,
                             datos[i].centro,
                             datos[i].actividad_base) == 0) {
@@ -361,14 +370,14 @@ void listadoActividadesPorCentro() {
     free(datos);
 }
 
-void frecuenciaDiariaActividades() {
+void frecuenciadiariaactividades() {
     FILE *f;
 
     Actividad *datos;
 
     int n = 0;
 
-    char actividadBuscada[100];
+    char actividadbuscada[100];
 
     char cabecera[1000];
 
@@ -393,7 +402,7 @@ void frecuenciaDiariaActividades() {
 
     printf("Introduce una actividad (en minusculas y con barra baja): ");
 
-    scanf("%s", actividadBuscada);
+    scanf("%s", actividadbuscada);
 
     printf("\nHORARIOS DISPONIBLES\n\n");
 
@@ -414,7 +423,7 @@ void frecuenciaDiariaActividades() {
                   &datos[n].libres,
                   datos[n].tipo_actividad) == 13) {
 
-        if (strcmp(datos[n].actividad_base, actividadBuscada) == 0) {
+        if (strcmp(datos[n].actividad_base, actividadbuscada) == 0) {
 
             printf("Centro: %s\n", datos[n].centro);
             printf("Dia: %s\n", datos[n].dia_semana);
@@ -437,12 +446,95 @@ void frecuenciaDiariaActividades() {
     free(datos);
 }
 
-void actividadMasFrecuentadaPorCentro() {
-    printf("Has elegido actividad mas frecuentada por centro.\n");
+void actividadmasfrecuentadaporcentro(FILE *fichero) {
+    char centrobuscado[N];
+    Actividad a;
+    Auxiliar lista[500]; 
+    char cabecera[1000];
+    int nLista = 0;
+    int i, encontrado;
+    int maxfrecuencia = 0;
+    int indiceganador = -1;
+
+    printf("\n--- ANALISIS DE ACTIVIDAD MAS FRECUENTADA ---\n");
+
+    do {
+        printf("Nombre del centro: ");
+        scanf(" %99[^\n]", centrobuscado);
+        if (existecentro(fichero, centrobuscado) == 0) {
+            printf("Ese centro no existe.\n");
+        }
+    } while (existecentro(fichero, centrobuscado) == 0);
+
+    rewind(fichero);
+    fgets(cabecera, 1000, fichero);
+
+    while (leeractividad(fichero, &a)) {
+        if (strcmp(a.centro, centrobuscado) == 0) {
+            encontrado = 0;
+            
+            for (i = 0; i < nLista && encontrado == 0; i++) {
+                if (strcmp(lista[i].nombreactividad, a.actividad_base) == 0) {
+                    lista[i].contador++;
+                    encontrado = 1;
+                }
+            }
+            
+            if (encontrado == 0 && nLista < 500) {
+                strcpy(lista[nLista].nombreactividad, a.actividad_base);
+                lista[nLista].contador = 1;
+                nLista++;
+            }
+        }
+    }
+
+    for (i = 0; i < nLista; i++) {
+        if (lista[i].contador > maxfrecuencia) {
+            maxfrecuencia = lista[i].contador;
+            indiceganador = i;
+        }
+    }
+
+    if (indiceganador != -1) {
+        printf("\n La actividad mas frecuentada en '%s' es: %s\n", 
+               centrobuscado, lista[indiceganador].nombreactividad);
+        printf("Se oferta %d veces en total.\n", lista[indiceganador].contador);
+    } else {
+        printf("\nNo se encontraron datos para este centro.\n");
+    }
 }
 
-void actividadMayorDisponibilidadPorCentro() {
-    printf("Has elegido actividad con mayor disponibilidad por centro.\n");
+void mediaplazasporhora(FILE *fichero) {
+    Actividad a;
+    char cabecera[1000];
+
+    int suma[24] = {0};
+    int cuenta[24] = {0};
+
+    rewind(fichero);
+    fgets(cabecera, 1000, fichero);  //salta la cabecera del fichero
+
+    while (leeractividad(fichero, &a)) {
+
+        int hora = 0;
+
+        // hora_inicio formato "8:00"
+        sscanf(a.hora_inicio, "%2d", &hora);
+
+        if (hora >= 0 && hora < 24) {
+            suma[hora] += a.ocupadas;
+            cuenta[hora]++;
+        }
+    }
+
+    printf("\nMEDIA DE PLAZAS OCUPADAS POR HORA\n");
+
+    for (int h = 0; h < 24; h++) {
+        if (cuenta[h] > 0) {
+            float media = (float)suma[h] / cuenta[h]; //calcula la media
+            printf("%02d:00 - %.2f plazas ocupadas de media en los centros \n", h, media);
+        }
+    }
 }
 
 void graficas() {
