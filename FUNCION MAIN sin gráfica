@@ -39,7 +39,7 @@ void reservarplaza(FILE *fichero);
 void listadoactividadesporcentro();
 void frecuenciadiariaactividades();
 void mediaplazasporhora();
-void graficas();
+void grafica();
 
 int existeactividad(Listado *listado, int nListado, char centro[], char actividad[]);
 int leeractividad(FILE *fichero, Actividad *a);
@@ -76,7 +76,7 @@ int main() {
             mediaplazasporhora();
 
         } else if (opcion == 6) {
-            graficas();
+            grafica();
 
         } else if (opcion == 7) {
             printf("Saliendo del programa...\n");
@@ -90,17 +90,17 @@ int main() {
 }
 
 void mostrarmenu(void) {
-    printf("\n\t* MENU *\n");
+    printf("\t* MENU *\n");
     printf("\n");
     printf("1. Listado de actividades por centro\n");
     printf("2. Frecuencia diaria de las actividades ofertadas\n");
     printf("3. Reservar plaza\n");
     printf("4. Actividad mas frecuentada por centro\n");
     printf("5. Media de plazas ocupadas por hora\n");
-    printf("6. Graficas\n");
+    printf("6. Grafica media de plazas ocupadas en funcion de horas\n");
     printf("7. Salir\n");
     
-    printf("Elige una opcion: ");
+    printf("\nElige una opcion: ");
 }
 
 int leeractividad(FILE *fichero, Actividad *a) {
@@ -520,6 +520,7 @@ void actividadmasfrecuentadaporcentro() {
 }
 
 void mediaplazasporhora() {
+	
     FILE *fichero = fopen("dataset.csv", "r");
     if (!fichero) {
         printf("No se pudo abrir dataset.csv\n");
@@ -529,38 +530,41 @@ void mediaplazasporhora() {
     Actividad a;
     char cabecera[1000];
 
-    int suma[24] = {0};
-    int cuenta[24] = {0};
-
+    int suma[16] = {0};
+    int cuenta[16] = {0};
+    
     fgets(cabecera, 1000, fichero);  //salta la cabecera
 
     while (leeractividad(fichero, &a)) {
 
         int hora = 0;
 
-        //hora_inicio formato "08:00"
+        //hora_inicio formato "07:00"
         sscanf(a.hora_inicio, "%2d", &hora);
 
-        if (hora >= 8 && hora <= 22) {
-            suma[hora] += a.ocupadas;
-            cuenta[hora]++;
+        if (hora >= 7 && hora <= 22) {
+        	int i = hora - 7; //cambia la hora a posicion dentro del vector
+            suma[i] += a.ocupadas;
+            cuenta[i]++;
         }
     }
 
     fclose(fichero);
 
-    printf("\nMEDIA DE PLAZAS OCUPADAS POR HORA (08:00 - 22:00)\n");
+    printf("\nMEDIA DE PLAZAS OCUPADAS POR HORA ( de 07:00h a 22:00h): \n");
 
-    for (int h = 8; h <= 22; h++) {
-        if (cuenta[h] > 0) {
-            float media = (float)suma[h] / cuenta[h];
-            printf("%02d:00 -> %.2f plazas ocupadas de media\n", h, media);
+    for (int h = 7; h <= 22; h++) {
+    	int i = h - 7;
+        if (cuenta[i] > 0) {
+            float media = (float)suma[i] / cuenta[i];
+            printf("%02d:00 -> %.2f plazas ocupadas\n", h, media);
         } else {
             printf("%02d:00 -> sin datos\n", h);
         }
+        printf("\n");
     }
 }
 
-void graficas() {
+void grafica() {
     printf("Has elegido graficas.\n");
 }
